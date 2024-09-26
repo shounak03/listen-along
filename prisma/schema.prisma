@@ -28,18 +28,18 @@ model Stream {
   extractedId String
   active      Boolean    @default(true)
   upvotes     Upvote[]
-  userID      String
-  user        User       @relation(fields: [userID], references: [id])
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
 }
 
 model Upvote {
   id       String @id @default(uuid())
-  userID   String
-  streamID String
-  user     User   @relation(fields: [userID], references: [id])
-  stream   Stream @relation(fields: [streamID], references: [id])
+  userId   String
+  streamId String
+  user     User   @relation(fields: [userId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id])
 
-  @@unique([userID, streamID])
+  @@unique([userId, streamId])
 }
 
 enum StreamType {
