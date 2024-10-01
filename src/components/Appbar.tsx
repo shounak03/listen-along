@@ -1,74 +1,87 @@
-// 'use client';
 
 
-// import { Link, Music } from 'lucide-react';
-// import { signIn, signOut, useSession } from 'next-auth/react'
-// import React from 'react'
-// import { Button } from './ui/button';
+'use client'
 
-// function Appbar() {
-//     const session = useSession();
-//     return (
+import { useState } from 'react'
+import { useSession, signOut, signIn } from 'next-auth/react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Music, Settings, LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+export default function Appbar() {
+  const { data: session } = useSession()
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+  return (
+    <nav className="bg-gray-900 border-b border-gray-800 px-4 py-3">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link href="/" className="flex items-center space-x-2">
+          <Music className="h-6 w-6 text-purple-500" />
+          <span className="text-2xl font-bold text-purple-500">muSpace</span>
+        </Link>
         
-//         <header className="px-4 lg:px-6 h-14 flex items-center border-b border-gray-800">
-            
-//             <Link className="flex items-center justify-center" href="#" >
-//                 <Music className="h-6 w-6 text-purple-500" />
-//                 <span className="ml-2 text-2xl font-bold text-purple-500">muSpace</span>
-//             </Link>
+        {session?.user ? (
+          <div className="flex items-center space-x-4">
+            <DropdownMenu open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Image
+                    src={session.user.image || '/placeholder-avatar.png'}
+                    alt="Profile"
+                    className="rounded-full"
 
-//             <nav className="ml-auto flex gap-4 sm:gap-6">
-
-//                 <Link className="text-sm font-medium hover:text-purple-400 transition-colors" href="#">
-//                     About
-//                 </Link>
-//                 {session.data?.user &&
-//                     <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => signIn()}>Logout</Button>
-//                 }
-//                 {!session.data?.user &&
-//                     <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => signIn()} >SignIn</Button>
-//                 }
-
-//             </nav>
-//         </header>
-//     )
-// }
-
-// export default Appbar
-
-'use client';
-
-import { Link as LucideLink, Music } from 'lucide-react';
-import { signIn, signOut, useSession } from 'next-auth/react'
-import React from 'react'
-import { Button } from './ui/button';
-import Link from 'next/link';
-
-function Appbar() {
-    const { data: session, status } = useSession();
-    const isLoading = status === "loading";
-
-    return (
-        <header className="px-4 lg:px-6 h-14 flex items-center border-b border-gray-800">
-            <Link className="flex items-center justify-center" href="/" >
-                <Music className="h-6 w-6 text-purple-500" />
-                <span className="ml-2 text-2xl font-bold text-purple-500">muSpace</span>
+                    width={100}
+                    height={40}
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-gray-800 text-gray-100 border border-gray-700" align="end" forceMount>
+                <DropdownMenuItem className="focus:bg-gray-700 focus:text-gray-100">
+                  <div className="flex flex-col space-y-1">
+                    <p className="font-medium">{session.user.name}</p>
+                    <p className="text-xs text-gray-400">{session.user.email}</p>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem className="focus:bg-gray-700 focus:text-gray-100">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="focus:bg-gray-700 focus:text-gray-100"
+                  onSelect={(event) => {
+                    event.preventDefault()
+                    signOut()
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <div className="space-x-4">
+            <Link href="/about" className="text-gray-300 hover:text-purple-400 transition-colors">
+              About
             </Link>
 
-            <nav className="ml-auto flex gap-4 sm:gap-6">
-                <Link className="text-sm font-medium hover:text-purple-400 transition-colors mt-2" href="#">
-                    About
-                </Link>
-                {!isLoading && (
-                    session ? (
-                        <Button type="button" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => signOut()}>Logout</Button>
-                    ) : (
-                        <Button type="button" className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => signIn()}>Sign In</Button>
-                    )
-                )}
-            </nav>
-        </header>
-    )
-}
+              <Button variant="outline" className="text-purple-400 border-purple-400 hover:bg-purple-400 hover:text-gray-900"
+                        onClick={() => signIn()} >
+                Sign In
+              </Button>
 
-export default Appbar
+          </div>
+        )}
+      </div>
+    </nav>
+  )
+}

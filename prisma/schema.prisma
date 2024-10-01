@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,42 +11,61 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(uuid())
-  email    String   @unique
-  provider Provider
-  streams  Stream[]
-  upvotes  Upvote[]
+  id          Int               @id @default(autoincrement())
+  username    String            @unique
+  email       String            @unique
+  password    String
+  avatar      String?
+  createdAt   DateTime          @default(now())
+  spaces      Space[]           @relation("CreatedSpaces")
+  memberships SpaceMembership[]
+  songs       Song[]
+  votes       Vote[]
 }
 
-model Stream {
-  id          String     @id @default(uuid())
-  type        StreamType
-  url         String
-  extractedId String
-  title       String     @default("")
-  smallImg    String     @default("")
-  bigImg      String     @default("")
-  active      Boolean    @default(true)
-  upvotes     Upvote[]
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
+model Space {
+  id          Int               @id @default(autoincrement())
+  name        String
+  description String
+  url         String            @unique @default("")
+  createdAt   DateTime          @default(now())
+  creatorId   Int
+  creator     User              @relation("CreatedSpaces", fields: [creatorId], references: [id])
+  members     SpaceMembership[]
+  songs       Song[]
 }
 
-model Upvote {
-  id       String @id @default(uuid())
-  userId   String
-  streamId String
-  user     User   @relation(fields: [userId], references: [id])
-  stream   Stream @relation(fields: [streamId], references: [id])
+model SpaceMembership {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  spaceId  Int
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  space    Space    @relation(fields: [spaceId], references: [id])
 
-  @@unique([userId, streamId])
+  @@unique([userId, spaceId])
 }
 
-enum StreamType {
-  Spotify
-  Youtube
+model Song {
+  id        Int      @id @default(autoincrement())
+  url       String
+  source    String // 'spotify' or 'youtube'
+  addedById Int
+  spaceId   Int
+  addedAt   DateTime @default(now())
+  addedBy   User     @relation(fields: [addedById], references: [id])
+  space     Space    @relation(fields: [spaceId], references: [id])
+  votes     Vote[]
 }
 
-enum Provider {
-  Google
+model Vote {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  songId   Int
+  voteType String // 'upvote' or 'downvote'
+  votedAt  DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  song     Song     @relation(fields: [songId], references: [id])
+
+  @@unique([userId, songId])
 }
